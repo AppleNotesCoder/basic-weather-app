@@ -1,7 +1,18 @@
 function search(event) {
   event.preventDefault();
-  let searchInputElement = document.querySelector("#search-input");
-  let cityElement = document.querySelector("#current-city");
+
+  const searchInputElement = document.querySelector("#search-input");
+  const cityElement = document.querySelector("#current-city");
+  const temperatureNowElement = document.querySelector(
+    ".current-temperature-value"
+  );
+  const currentConditionElement = document.querySelector("#current-condition");
+  const currentHumidtyElement = document.querySelector("#current-humidity");
+  const currentWindElement = document.querySelector("#current-wind");
+  const currentWeatherIconElement = document.querySelector(
+    "#current-weather-icon"
+  );
+
   cityElement.innerHTML = searchInputElement.value;
 
   let root = "https://api.shecodes.io/";
@@ -11,10 +22,23 @@ function search(event) {
     .then((response) => response.json())
     .then((json) => {
       console.log(json);
-      const temperatureNowElement = document.querySelector(
-        ".current-temperature-value"
-      );
+
+      // Temperature
       temperatureNowElement.textContent = Math.round(json.temperature.current);
+
+      // Condition
+      currentConditionElement.textContent = json.condition.description;
+
+      // Humidity
+      currentHumidtyElement.textContent = json.temperature.humidity + "%";
+
+      // Window
+      currentWindElement.textContent = json.wind.speed + "km/h";
+
+      // Icon - http://shecodes-assets.s3.amazonaws.com/api/weather/icons/
+      currentWeatherIconElement.src = json.condition.icon_url;
+      // Time
+      currentDateELement.innerHTML = formatDate(new Date(json.time));
     });
 }
 
