@@ -37,6 +37,8 @@ function search(event) {
 
       // Icon - http://shecodes-assets.s3.amazonaws.com/api/weather/icons/
       currentWeatherIconElement.src = json.condition.icon_url;
+      // Time
+      currentDateELement.innerHTML = formatDate(new Date(json.time));
     });
 }
 
