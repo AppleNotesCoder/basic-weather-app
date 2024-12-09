@@ -1,27 +1,37 @@
-function search(event) {
+// API
+const root = "https://api.shecodes.io";
+const key = "c4080adfbabfbe5dd4cb35fb3boat419";
+
+// Elements
+const currentDateElement = document.querySelector("#current-date");
+const searchInputElement = document.querySelector("#search-input");
+const searchButtonElement = document.querySelector(".search-button");
+const cityElement = document.querySelector("#current-city");
+const temperatureNowElement = document.querySelector(
+  ".current-temperature-value"
+);
+const currentConditionElement = document.querySelector("#current-condition");
+const currentHumidtyElement = document.querySelector("#current-humidity");
+const currentWindElement = document.querySelector("#current-wind");
+const currentWeatherIconElement = document.querySelector(
+  "#current-weather-icon"
+);
+let searchForm = document.querySelector("#search-form");
+let forecastContainerElement = document.querySelector(".forecast-weather");
+
+// Functions
+function searchCity(event) {
   event.preventDefault();
 
-  const searchInputElement = document.querySelector("#search-input");
-  const cityElement = document.querySelector("#current-city");
-  const temperatureNowElement = document.querySelector(
-    ".current-temperature-value"
-  );
-  const currentConditionElement = document.querySelector("#current-condition");
-  const currentHumidtyElement = document.querySelector("#current-humidity");
-  const currentWindElement = document.querySelector("#current-wind");
-  const currentWeatherIconElement = document.querySelector(
-    "#current-weather-icon"
-  );
+  const currentWeatherPath = `${root}/weather/v1/current?query=${searchInputElement.value}&key=${key}&units=metric`;
 
   cityElement.innerHTML = searchInputElement.value;
 
-  let root = "https://api.shecodes.io/";
-  let path = `weather/v1/current?query=${searchInputElement.value}&key=c4080adfbabfbe5dd4cb35fb3boat419&units=metric`;
-
-  fetch(root + "/" + path)
+  // ################# CURRENT #################
+  fetch(currentWeatherPath)
     .then((response) => response.json())
     .then((json) => {
-      console.log(json);
+      console.log("CURRENT", json);
 
       // Temperature
       temperatureNowElement.textContent = Math.round(json.temperature.current);
@@ -37,12 +47,53 @@ function search(event) {
 
       // Icon - http://shecodes-assets.s3.amazonaws.com/api/weather/icons/
       currentWeatherIconElement.src = json.condition.icon_url;
+
       // Time
-      currentDateELement.innerHTML = formatDate(new Date(json.time));
+      currentDateElement.innerHTML = formatDate(new Date(json.time));
+    });
+
+  // ################# FORECAST #################
+  let forecastPath = `${root}/weather/v1/forecast?query=${searchInputElement.value}&key=${key}&units=metric`;
+
+  fetch(forecastPath)
+    .then((response) => response.json())
+    .then((json) => {
+      console.log("FORECAST", json);
+
+      let days = json.daily;
+
+      let forecastHtml = "";
+
+      for (let i = 0; i < 5; i++) {
+        const day = days[i];
+
+        console.log("Day", day);
+
+        let dayName = new Date(day.time * 1000).toLocaleString("en-us", {
+          weekday: "long",
+        });
+        let dayMaxTemperature = Math.round(day.temperature.maximum);
+        let dayMinTemperature = Math.round(day.temperature.minimum);
+
+        let dayHtml = `
+            <div class="forecast-weather-day">
+              <p class="day">${dayName}</p>
+              <img id="day-weather-icon" src="${day.condition.icon_url}" />
+              <p class="low-high">
+                ${dayMaxTemperature}° <span>${dayMinTemperature}°</span>
+              </p>
+            </div>
+           `;
+
+        forecastHtml += dayHtml;
+      }
+
+      forecastContainerElement.innerHTML = forecastHtml;
     });
 }
 
 function formatDate(date) {
+  console.log(date);
   let minutes = date.getMinutes();
   let hours = date.getHours();
   let day = date.getDay();
@@ -69,10 +120,9 @@ function formatDate(date) {
   return `${formattedDay} ${hours}:${minutes}`;
 }
 
-let searchForm = document.querySelector("#search-form");
-searchForm.addEventListener("submit", search);
+// Events
+searchForm.addEventListener("submit", searchCity);
 
-let currentDateELement = document.querySelector("#current-date");
-let currentDate = new Date();
-
-currentDateELement.innerHTML = formatDate(currentDate);
+// When the page loads - default search to Paris
+searchInputElement.value = "Paris";
+searchButtonElement.click();
